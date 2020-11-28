@@ -10,7 +10,7 @@ namespace dotnetIOT
     class Message
     {
         private string ADAFRUIT_IO_USERNAME = "rxharja";
-        private string ADAFRUIT_IO_KEY = "aio_eVPT97R8pw5bbK3YkI6zpUmoepiI";
+        private string ADAFRUIT_IO_KEY = "IO_KEY_HERE";
         private string ADAFRUIT_IO_FEED = "temperature";
 
         public void Send(string ioMessageText, string feed)
