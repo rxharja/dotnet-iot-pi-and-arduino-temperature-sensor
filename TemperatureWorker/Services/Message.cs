@@ -3,15 +3,22 @@ using System.Collections.Generic;
 using System.Text;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.Logging;
 
-
-namespace dotnetIOT
+namespace TemperatureWorker.Services
 {
-    class Message
+    class Message : IMessage
     {
         private string ADAFRUIT_IO_USERNAME = "rxharja";
         private string ADAFRUIT_IO_KEY = "aio_OoXw38YG7OKTuqquOYHljbh6BS8H";
         private string ADAFRUIT_IO_FEED = "temperature";
+
+        private readonly ILogger<Message> _logger;
+
+        public Message(ILogger<Message> logger)
+        {
+            _logger = logger;
+        }
 
         public void Send(string ioMessageText, string feed)
         {
@@ -24,7 +31,9 @@ namespace dotnetIOT
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-AIO-Key", this.ADAFRUIT_IO_KEY);
             var response = client.PostAsync(postDestination, stringContent).Result;
 
-            Console.WriteLine($"Adafruit IO responds to {ioMessageText}: {response.IsSuccessStatusCode}");
+            _logger.LogInformation($"Adafruit IO responds to {ioMessageText}: {response.IsSuccessStatusCode}");
+
+            client.Dispose();
         }
 
     }
