@@ -1,13 +1,10 @@
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Systemd;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.IO.Ports;
-using System.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
-using TemperatureWorker.Configuration;
 using TemperatureWorker.Controllers;
 
 namespace TemperatureWorker
@@ -18,41 +15,45 @@ namespace TemperatureWorker
 
         private readonly IMessenger _messenger;
 
-        private readonly SerialPort serialPort;
-
-        private readonly IOptions<PortConfiguration> _portconfig;
-        private string Buffer { get; set; }
-
+        private readonly ISerialPortManager _serialPort;
 
         public Worker(ILogger<Worker> logger, 
             IMessenger messenger, 
-            SerialPort serialport, 
-            IOptions<PortConfiguration> options)
+            ISerialPortManager serialport)
         {
             _logger = logger;
+            
             _messenger = messenger;
-            serialPort = serialport;
-            _portconfig = options;
+            
+            _serialPort = serialport;
+            
+            _serialPort.Start();
+
+            if (SystemdHelpers.IsSystemdService())
+            {
+                _logger.LogInformation("Running as linux daemon");
+            }
+            else
+            {
+                _logger.LogInformation("Not running as Linux daemon");
+            }
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            serialPort.PortName = _portconfig.Value.PortName;
-            serialPort.BaudRate = _portconfig.Value.BaudRate;
-            serialPort.Parity = Parity.None;
-
-            serialPort.Open();
             
             while (!stoppingToken.IsCancellationRequested)
             {
-                Buffer = serialPort.ReadLine().Trim();
-                _logger.LogInformation("Accessing port at: {time}", DateTimeOffset.Now);
-                _messenger.ProcessData(Buffer);
-                await Task.Delay(100, stoppingToken);
-                Buffer = String.Empty;
+
+                _logger.LogInformation($"Checking Message Bus at {DateTimeOffset.Now}");
+
+                using var subscriber = _serialPort.MessageBus.Subscribe(
+                    message => _messenger.ProcessData(message));
+
+                await Task.Delay(5000, stoppingToken);
+
             }
 
-            serialPort.Close();
         }
     }
 }

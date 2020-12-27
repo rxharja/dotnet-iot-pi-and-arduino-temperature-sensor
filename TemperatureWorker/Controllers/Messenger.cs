@@ -31,13 +31,14 @@ namespace TemperatureWorker.Controllers
 
         public void ProcessData(string data)
         {
+            //_logger.LogInformation($"data coming in: {data}");
             try
             {
                 datapoint = JsonConvert.DeserializeObject<DataPoint>(data);
             }
             catch (JsonReaderException)
             {
-                _logger.LogError("Improperly formatted JSON string from buffer, trying again");
+                _logger.LogWarning("Improperly formatted JSON string from buffer, trying again");
             }
 
             messageC.value = datapoint.C.ToString();

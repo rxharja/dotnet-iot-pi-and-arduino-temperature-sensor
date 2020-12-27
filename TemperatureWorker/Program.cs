@@ -1,10 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.IO.Ports;
 using TemperatureWorker.Controllers;
 using TemperatureWorker.Services;
 using TemperatureWorker.Configuration;
@@ -22,6 +17,7 @@ namespace TemperatureWorker
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseSystemd()
                 .ConfigureAppConfiguration((context, configuration) =>
                 {
                     configuration.SetBasePath(Directory.GetCurrentDirectory());
@@ -32,8 +28,9 @@ namespace TemperatureWorker
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddOptions();
-                    services.Configure<PortConfiguration>(hostContext.Configuration.GetSection("PortConfiguration"));
-                    services.AddTransient<IMessage, Message>();
+                    services.Configure<PortConfiguration>(hostContext.Configuration.GetSection("PortConfig"));
+                    services.AddSingleton<IMessage, Message>();
+                    services.AddSingleton<ISerialPortManager, SerialPortManager>();
                     services.AddSingleton<IMessenger, Messenger>();
                     services.AddHostedService<Worker>();
                 });

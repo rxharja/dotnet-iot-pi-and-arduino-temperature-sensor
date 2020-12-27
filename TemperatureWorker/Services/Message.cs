@@ -10,11 +10,10 @@ namespace TemperatureWorker.Services
     class Message : IMessage
     {
         private string ADAFRUIT_IO_USERNAME = "rxharja";
-        private string ADAFRUIT_IO_KEY = "aio_OoXw38YG7OKTuqquOYHljbh6BS8H";
+        private string ADAFRUIT_IO_KEY = "aio_SxxK34mgmAbTq6rDU2HW3pLTiAbe";
         private string ADAFRUIT_IO_FEED = "temperature";
 
         private readonly ILogger<Message> _logger;
-
         public Message(ILogger<Message> logger)
         {
             _logger = logger;
@@ -31,7 +30,7 @@ namespace TemperatureWorker.Services
             client.DefaultRequestHeaders.TryAddWithoutValidation("X-AIO-Key", this.ADAFRUIT_IO_KEY);
             var response = client.PostAsync(postDestination, stringContent).Result;
 
-            _logger.LogInformation($"Adafruit IO responds to {ioMessageText}: {response.IsSuccessStatusCode}");
+            _logger.LogInformation($"Adafruit IO response to {ioMessageText}: {response.IsSuccessStatusCode}");
 
             client.Dispose();
         }
